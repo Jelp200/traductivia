@@ -1,0 +1,146 @@
+---
+import Layout from "../layouts/Layout.astro";
+import FileTranslator from "../components/features/FileTranslator";
+---
+
+<Layout title="TraductivIA — Traductor inteligente de documentos">
+	<div class="flex min-h-dvh flex-col">
+		<!-- ── Header ──────────────────────────────────────── -->
+		<header
+			class="border-b border-gray-200/60 bg-white/70 backdrop-blur-md"
+		>
+			<div
+				class="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6"
+			>
+				<div class="flex items-center gap-2.5">
+					<!-- Logo icon -->
+					<div
+						class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-sm"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-5 w-5"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+						>
+							<path
+								d="M7.75 2.75a.75.75 0 0 0-1.5 0v1.258a32.987 32.987 0 0 0-3.599.278.75.75 0 1 0 .198 1.487A31.545 31.545 0 0 1 8.7 5.545 19.381 19.381 0 0 1 7.257 9.04a19.418 19.418 0 0 1-1.416-2.13.75.75 0 0 0-1.32.716 20.898 20.898 0 0 0 1.707 2.644 19.39 19.39 0 0 1-2.768 2.058.75.75 0 0 0 .788 1.277 20.857 20.857 0 0 0 3.063-2.318A20.876 20.876 0 0 0 10.4 13.32a.75.75 0 1 0-.94-1.166 19.39 19.39 0 0 1-2.457 1.725 19.394 19.394 0 0 0 1.544-3.048c.135.09.272.178.411.264a.75.75 0 1 0 .788-1.277 17.9 17.9 0 0 1-.417-.27A20.89 20.89 0 0 0 10.92 5.7a.75.75 0 0 0-1.395-.551A19.357 19.357 0 0 1 8.25 8.518V2.75Z"
+							></path>
+							<path
+								d="M14.75 7.5a.75.75 0 0 0-1.41.355l.001.01 1 4.5a.75.75 0 0 0 .568.546l.007.001.009.002 2.075.415a.75.75 0 0 0 .296-1.471l-1.585-.317-.593-2.668a.75.75 0 0 0-.367-.373Z"
+							></path>
+							<path
+								d="M13.293 15.707a.75.75 0 0 1 0-1.06l1.5-1.5a.75.75 0 1 1 1.06 1.06l-.72.72h1.617a.75.75 0 0 1 0 1.5h-1.618l.72.72a.75.75 0 0 1-1.06 1.06l-1.5-1.5Z"
+							></path>
+						</svg>
+					</div>
+					<span class="text-lg font-bold tracking-tight text-gray-900"
+						>TraductivIA</span
+					>
+				</div>
+				<span class="hidden text-xs text-gray-400 sm:block"
+					>MVP v0.1</span
+				>
+			</div>
+		</header>
+
+		<!-- ── Main content ──────────────────────────────── -->
+		<main
+			class="flex flex-1 items-start justify-center px-4 py-10 sm:px-6 sm:py-16"
+		>
+			<div class="w-full max-w-xl">
+				<!-- Hero text -->
+				<div class="mb-8 text-center">
+					<h1
+						class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl"
+					>
+						Traduce tus documentos al instante
+					</h1>
+					<p class="mt-3 text-sm text-gray-500 sm:text-base">
+						Sube un archivo PDF, Word o imagen y obtén una
+						traducción profesional en segundos. <span
+							class="font-medium text-indigo-600"
+							>Simple, rápido y seguro.</span
+						>
+					</p>
+				</div>
+
+				<!-- Translator card -->
+				<div
+					class="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-lg shadow-gray-200/40 sm:p-8"
+				>
+					<FileTranslator client:load />
+				</div>
+
+				<!-- Feature pills -->
+				<div
+					class="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs text-gray-400"
+				>
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 shadow-sm ring-1 ring-gray-100"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-3.5 w-3.5 text-emerald-500"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-4.46a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
+								clip-rule="evenodd"></path>
+						</svg>
+						Procesamiento seguro
+					</span>
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 shadow-sm ring-1 ring-gray-100"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-3.5 w-3.5 text-indigo-500"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z"
+								clip-rule="evenodd"></path>
+						</svg>
+						Datos encriptados
+					</span>
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 shadow-sm ring-1 ring-gray-100"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-3.5 w-3.5 text-amber-500"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M11.3 1.046A1 1 0 0 1 12 2v5h4a1 1 0 0 1 .82 1.573l-7 10A1 1 0 0 1 8 18v-5H4a1 1 0 0 1-.82-1.573l7-10a1 1 0 0 1 1.12-.38Z"
+								clip-rule="evenodd"></path>
+						</svg>
+						Resultado inmediato
+					</span>
+				</div>
+			</div>
+		</main>
+
+		<!-- ── Footer ──────────────────────────────────────── -->
+		<footer
+			class="border-t border-gray-200/60 bg-white/50 backdrop-blur-sm"
+		>
+			<div
+				class="mx-auto max-w-4xl px-4 py-4 text-center text-xs text-gray-400 sm:px-6"
+			>
+				&copy; 2026 TraductivIA — Proyecto MVP. Construido con <span
+					class="font-medium text-gray-500">Astro</span
+				>,
+				<span class="font-medium text-gray-500">React</span> y
+				<span class="font-medium text-gray-500">Tailwind CSS</span>.
+			</div>
+		</footer>
+	</div>
+</Layout>

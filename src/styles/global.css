@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+/* ── TraductivIA Theme (Tailwind v4) ───────────────────── */
+@theme {
+    --color-primary-50: oklch(0.97 0.01 265);
+    --color-primary-100: oklch(0.93 0.03 265);
+    --color-primary-200: oklch(0.87 0.06 265);
+    --color-primary-300: oklch(0.78 0.1 265);
+    --color-primary-400: oklch(0.67 0.15 265);
+    --color-primary-500: oklch(0.55 0.19 265);
+    --color-primary-600: oklch(0.48 0.2 265);
+    --color-primary-700: oklch(0.42 0.18 265);
+    --color-primary-800: oklch(0.35 0.15 265);
+    --color-primary-900: oklch(0.3 0.12 265);
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* ── Base styles ─────────────────────────────────────────── */
+body {
+    @apply bg-gradient-to-br from-slate-50 to-indigo-50 text-gray-900 antialiased;
+    min-height: 100dvh;
+}
+
+* {
+    @apply transition-colors duration-150;
+}
