@@ -5,6 +5,7 @@
    ────────────────────────────────────────────────────────────── */
 
 import PDFDocument from 'pdfkit';
+import path from 'path';
 import {
     Document,
     Packer,
@@ -14,6 +15,17 @@ import {
     AlignmentType,
 } from 'docx';
 import type { OutputFormat } from '../types/translation';
+
+/* ── Helpers ──────────────────────────────────────────────── */
+
+/**
+ * Busca la fuente Arial en el sistema (Windows).
+ * Arial soporta Cyrillic, Latin extendido, griego, etc.
+ */
+function getSystemFontPath(fontFile: string): string {
+    const winRoot = process.env.SYSTEMROOT || process.env.windir || 'C:\\Windows';
+    return path.join(winRoot, 'Fonts', fontFile);
+}
 
 /* ── PDF Generation ───────────────────────────────────────── */
 
@@ -32,6 +44,19 @@ async function generatePdf(text: string, fileName: string): Promise<Buffer> {
             },
         });
 
+        /* ── Registrar fuentes Unicode (Arial) ────────────── */
+        try {
+            doc.registerFont('Arial', getSystemFontPath('arial.ttf'));
+            doc.registerFont('Arial-Bold', getSystemFontPath('arialbd.ttf'));
+            doc.registerFont('Arial-Italic', getSystemFontPath('ariali.ttf'));
+        } catch {
+            // Si no se encuentran las fuentes, pdfkit usará Helvetica (sin Cyrillic)
+            console.warn('[file-generator] No se encontraron fuentes Arial. Se usará Helvetica (sin soporte Cyrillic).');
+        }
+
+        const fontRegular = 'Arial';
+        const fontBold = 'Arial-Bold';
+
         const chunks: Uint8Array[] = [];
         doc.on('data', (chunk: Uint8Array) => chunks.push(chunk));
         doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -39,6 +64,7 @@ async function generatePdf(text: string, fileName: string): Promise<Buffer> {
 
         /* ── Header ─────────────────────────────────────────── */
         doc
+            .font(fontRegular)
             .fontSize(8)
             .fillColor('#9ca3af')
             .text('TraductivIA — Documento traducido', { align: 'right' });
@@ -51,29 +77,31 @@ async function generatePdf(text: string, fileName: string): Promise<Buffer> {
         for (const line of lines) {
             const trimmed = line.trimStart();
 
-            // Heading ## or #
-            if (trimmed.startsWith('## ')) {
-                doc.moveDown(0.5);
-                doc.fontSize(14).fillColor('#1e293b').text(trimmed.replace(/^##\s+/, ''), { align: 'left' });
-                doc.moveDown(0.3);
-                continue;
-            }
-            if (trimmed.startsWith('# ')) {
-                doc.moveDown(0.5);
-                doc.fontSize(18).fillColor('#0f172a').text(trimmed.replace(/^#\s+/, ''), { align: 'left' });
-                doc.moveDown(0.4);
-                continue;
-            }
+            // Heading ### 
             if (trimmed.startsWith('### ')) {
                 doc.moveDown(0.3);
-                doc.fontSize(12).fillColor('#334155').text(trimmed.replace(/^###\s+/, ''), { align: 'left' });
+                doc.font(fontBold).fontSize(12).fillColor('#334155').text(trimmed.replace(/^###\s+/, ''), { align: 'left' });
                 doc.moveDown(0.2);
+                continue;
+            }
+            // Heading ##
+            if (trimmed.startsWith('## ')) {
+                doc.moveDown(0.5);
+                doc.font(fontBold).fontSize(14).fillColor('#1e293b').text(trimmed.replace(/^##\s+/, ''), { align: 'left' });
+                doc.moveDown(0.3);
+                continue;
+            }
+            // Heading #
+            if (trimmed.startsWith('# ')) {
+                doc.moveDown(0.5);
+                doc.font(fontBold).fontSize(18).fillColor('#0f172a').text(trimmed.replace(/^#\s+/, ''), { align: 'left' });
+                doc.moveDown(0.4);
                 continue;
             }
 
             // Bullet list
             if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-                doc.fontSize(11).fillColor('#1e293b').text(`  •  ${trimmed.slice(2)}`, { align: 'left' });
+                doc.font(fontRegular).fontSize(11).fillColor('#1e293b').text(`  •  ${trimmed.slice(2)}`, { align: 'left' });
                 continue;
             }
 
@@ -84,7 +112,7 @@ async function generatePdf(text: string, fileName: string): Promise<Buffer> {
             }
 
             // Regular paragraph
-            doc.fontSize(11).fillColor('#1e293b').text(trimmed, {
+            doc.font(fontRegular).fontSize(11).fillColor('#1e293b').text(trimmed, {
                 align: 'left',
                 lineGap: 3,
             });
@@ -93,6 +121,7 @@ async function generatePdf(text: string, fileName: string): Promise<Buffer> {
         /* ── Footer ─────────────────────────────────────────── */
         doc.moveDown(2);
         doc
+            .font(fontRegular)
             .fontSize(7)
             .fillColor('#d1d5db')
             .text('Generado automáticamente por TraductivIA', { align: 'center' });

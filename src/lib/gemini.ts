@@ -4,7 +4,7 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-/** Modelo por defecto — Gemini 3.1 Pro Preview (actual, multimodal, recomendado). */
+/** Modelo por defecto — configurable vía GEMINI_MODEL en .env */
 const DEFAULT_MODEL = 'gemini-3.1-pro-preview';
 
 let _instance: GoogleGenerativeAI | null = null;
@@ -31,13 +31,24 @@ function getClient(): GoogleGenerativeAI {
 
 /**
  * Obtiene una instancia del modelo generativo configurada para traducción.
+ * Usa GEMINI_MODEL del .env si está definido, si no usa DEFAULT_MODEL.
  */
-export function getModel(modelName = DEFAULT_MODEL) {
-    return getClient().getGenerativeModel({
-        model: modelName,
-        generationConfig: {
-            temperature: 0.2, // Baja creatividad → traducciones más fieles
-            maxOutputTokens: 8192,
+/** Timeout para requests a Gemini (5 minutos — PDFs con OCR pueden tardar). */
+const REQUEST_TIMEOUT_MS = 300_000;
+
+export function getModel(modelName?: string) {
+    const model = modelName
+        ?? (import.meta.env.GEMINI_MODEL as string | undefined)
+        ?? DEFAULT_MODEL;
+
+    return getClient().getGenerativeModel(
+        {
+            model,
+            generationConfig: {
+                temperature: 0.2, // Baja creatividad → traducciones más fieles
+                maxOutputTokens: 8192,
+            },
         },
-    });
+        { timeout: REQUEST_TIMEOUT_MS }
+    );
 }

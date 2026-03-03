@@ -2,9 +2,9 @@
    TraductivIA – Tipos compartidos para traducción de documentos
    ────────────────────────────────────────────────────────────── */
 
-/** Códigos ISO 639‑1 de los idiomas soportados.
+/** Códigos ISO 639‑1 de los idiomas soportados + 'original' para solo extraer texto.
  *  Para agregar un nuevo idioma, añade el código aquí y un objeto en LANGUAGES. */
-export type SupportedLanguage = 'es' | 'en';
+export type SupportedLanguage = 'es' | 'en' | 'ru' | 'uk' | 'original';
 
 /** Formatos de archivo de salida disponibles. */
 export type OutputFormat = 'pdf' | 'docx';
@@ -36,8 +36,11 @@ export interface LanguageOption {
 
 /** Lista de idiomas disponibles. Extiende este array para añadir más idiomas. */
 export const LANGUAGES: readonly LanguageOption[] = [
+    { code: 'original', label: 'Solo extraer texto (sin traducción)' },
     { code: 'en', label: 'Inglés' },
     { code: 'es', label: 'Español' },
+    { code: 'ru', label: 'Ruso' },
+    { code: 'uk', label: 'Ucraniano' },
 ] as const;
 
 export interface FormatOption {

@@ -28,7 +28,7 @@ function formatBytes(bytes: number): string {
 export default function FileTranslator() {
     /* State */
     const [file, setFile] = useState<File | null>(null);
-    const [targetLang, setTargetLang] = useState<SupportedLanguage>('en');
+    const [targetLang, setTargetLang] = useState<SupportedLanguage>('original');
     const [outputFormat, setOutputFormat] = useState<OutputFormat>('pdf');
     const [isLoading, setIsLoading] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -283,7 +283,7 @@ export default function FileTranslator() {
                 {/* Target language */}
                 <div>
                     <label htmlFor="targetLang" className="mb-1.5 block text-sm font-medium text-gray-700">
-                        Idioma destino
+                        Acción / Idioma destino
                     </label>
                     <select
                         id="targetLang"
@@ -339,14 +339,14 @@ export default function FileTranslator() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647Z" />
                         </svg>
-                        Traduciendo…
+                        {targetLang === 'original' ? 'Extrayendo texto…' : 'Traduciendo…'}
                     </>
                 ) : (
                     <>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M7.75 2.75a.75.75 0 0 0-1.5 0v1.258a32.987 32.987 0 0 0-3.599.278.75.75 0 1 0 .198 1.487A31.545 31.545 0 0 1 8.7 5.545 19.381 19.381 0 0 1 7.257 9.04a19.418 19.418 0 0 1-1.416-2.13.75.75 0 0 0-1.32.716 20.898 20.898 0 0 0 1.707 2.644 19.39 19.39 0 0 1-2.768 2.058.75.75 0 0 0 .788 1.277 20.857 20.857 0 0 0 3.063-2.318A20.876 20.876 0 0 0 10.4 13.32a.75.75 0 1 0-.94-1.166 19.39 19.39 0 0 1-2.457 1.725 19.394 19.394 0 0 0 1.544-3.048c.135.09.272.178.411.264a.75.75 0 1 0 .788-1.277 17.9 17.9 0 0 1-.417-.27A20.89 20.89 0 0 0 10.92 5.7a.75.75 0 0 0-1.395-.551A19.357 19.357 0 0 1 8.25 8.518V2.75ZM14.75 7.5a.75.75 0 0 0-1.41.355l.001.01 1 4.5a.75.75 0 0 0 .568.546l.007.001.009.002 2.075.415a.75.75 0 0 0 .296-1.471l-1.585-.317-.593-2.668a.75.75 0 0 0-.367-.373ZM13.293 15.707a.75.75 0 0 1 0-1.06l1.5-1.5a.75.75 0 1 1 1.06 1.06l-.72.72h1.617a.75.75 0 0 1 0 1.5h-1.618l.72.72a.75.75 0 0 1-1.06 1.06l-1.5-1.5Z" />
                         </svg>
-                        Traducir documento
+                        {targetLang === 'original' ? 'Extraer texto' : 'Traducir documento'}
                     </>
                 )}
             </button>
@@ -371,7 +371,7 @@ export default function FileTranslator() {
                             </svg>
                         )}
                         <div>
-                            <p className="font-medium">{result.success ? '¡Traducción completada!' : 'Error en la traducción'}</p>
+                            <p className="font-medium">{result.success ? (targetLang === 'original' ? '¡Extracción completada!' : '¡Traducción completada!') : 'Error en la operación'}</p>
                             <p className="mt-1 opacity-80">{result.message}</p>
                             {result.fileName && (
                                 <p className="mt-2 text-xs font-mono opacity-60">Archivo: {result.fileName}</p>
@@ -383,7 +383,7 @@ export default function FileTranslator() {
                     {result.success && result.translatedText && (
                         <div className="rounded-xl border border-gray-200 bg-gray-50">
                             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-2.5">
-                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Texto traducido</span>
+                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{targetLang === 'original' ? 'Texto extraído' : 'Texto traducido'}</span>
                                 <div className="flex items-center gap-1">
                                     <button
                                         type="button"

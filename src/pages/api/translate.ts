@@ -93,18 +93,26 @@ export const POST: APIRoute = async ({ request }) => {
             );
         }
 
-        /* ── Traducir con Gemini ──────────────────────────────── */
+        /* ── Traducir / Extraer ─────────────────────────────── */
         const { translatedText } = await translateFile(file, targetLang);
 
         /* ── Construir nombre de archivo de salida ───────────── */
         const baseName = file.name.replace(/\.[^.]+$/, '');
-        const langLabel = LANGUAGES.find((l) => l.code === targetLang)?.label ?? targetLang;
-        const translatedFileName = `${baseName}_${targetLang}.${outputFormat}`;
+        const isExtractOnly = targetLang === 'original';
+        const langLabel = isExtractOnly
+            ? 'original'
+            : (LANGUAGES.find((l) => l.code === targetLang)?.label ?? targetLang);
+        const suffix = isExtractOnly ? '_extracted' : `_${targetLang}`;
+        const translatedFileName = `${baseName}${suffix}.${outputFormat}`;
+
+        const successMessage = isExtractOnly
+            ? `Texto extraído exitosamente de "${file.name}". Formato de salida: ${outputFormat.toUpperCase()}.`
+            : `Archivo "${file.name}" traducido exitosamente al ${langLabel}. Formato de salida: ${outputFormat.toUpperCase()}.`;
 
         return jsonResponse(
             {
                 success: true,
-                message: `Archivo "${file.name}" traducido exitosamente al ${langLabel}. Formato de salida: ${outputFormat.toUpperCase()}.`,
+                message: successMessage,
                 fileName: translatedFileName,
                 translatedText,
             },
@@ -113,10 +121,27 @@ export const POST: APIRoute = async ({ request }) => {
     } catch (error) {
         console.error('[API /translate] Error:', error);
 
-        const errorMessage =
-            error instanceof Error && error.message.includes('GEMINI_API_KEY')
-                ? error.message
-                : 'Error interno del servidor. Intenta de nuevo más tarde.';
+        let errorMessage = 'Error interno del servidor. Intenta de nuevo más tarde.';
+
+        if (error instanceof Error) {
+            if (error.message.includes('GEMINI_API_KEY')) {
+                errorMessage = error.message;
+            } else if (error.message.includes('demasiado grande')) {
+                errorMessage = error.message;
+            } else if (
+                error.message.includes('fetch failed') ||
+                error.message.includes('ETIMEDOUT') ||
+                error.message.includes('ECONNRESET') ||
+                error.message.includes('timeout')
+            ) {
+                errorMessage =
+                    'La solicitud a la IA tardó demasiado o falló la conexión. ' +
+                    'Verifica tu conexión a internet e intenta con un archivo más pequeño.';
+            } else if (error.message.includes('404')) {
+                errorMessage =
+                    'Modelo de IA no disponible. Verifica GEMINI_MODEL en el archivo .env.';
+            }
+        }
 
         return jsonResponse(
             { success: false, message: errorMessage },

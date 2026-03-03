@@ -5,6 +5,7 @@
      • Imágenes (PNG, JPG, WebP) → OCR + traducción
      • PDF                       → extracción de texto + traducción
      • Word (DOCX/DOC)           → extracción con mammoth + traducción
+     • Modo "original"           → solo extrae texto, sin traducir
    ────────────────────────────────────────────────────────────── */
 
 import { getModel } from './gemini';
@@ -23,6 +24,9 @@ interface TranslationResult {
 
 type FileCategory = 'image' | 'pdf' | 'word';
 
+/** Tamaño máximo para envío inline a Gemini (10 MB). */
+const MAX_INLINE_SIZE_BYTES = 10 * 1024 * 1024;
+
 /* ── Helpers ──────────────────────────────────────────────── */
 
 function categorizeFile(mimeType: string): FileCategory {
@@ -33,6 +37,18 @@ function categorizeFile(mimeType: string): FileCategory {
 
 function getLangLabel(code: SupportedLanguage): string {
     return LANGUAGES.find((l) => l.code === code)?.label ?? code;
+}
+
+/** Valida que el archivo no exceda el tamaño máximo para inline data. */
+function validateFileSize(file: File): void {
+    if (file.size > MAX_INLINE_SIZE_BYTES) {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        throw new Error(
+            `El archivo (${sizeMB} MB) es demasiado grande para procesarlo vía OCR. ` +
+            `El tamaño máximo es ${MAX_INLINE_SIZE_BYTES / (1024 * 1024)} MB. ` +
+            `Intenta con un archivo más pequeño o conviértelo a DOCX para extraer texto sin límite.`
+        );
+    }
 }
 
 /** Convierte un File/Blob a base64 para enviar a Gemini como inline data. */
@@ -90,6 +106,84 @@ function buildOcrTranslationPrompt(targetLang: SupportedLanguage): string {
         '',
         'Devuelve ÚNICAMENTE el texto traducido.',
     ].join('\n');
+}
+
+/** Prompt para solo extraer texto (OCR) sin traducir. */
+function buildOcrExtractOnlyPrompt(): string {
+    return [
+        'You are an expert OCR system. Your task is to extract ALL visible text from the provided image or document.',
+        '',
+        'CRITICAL RULES:',
+        '1. Extract EVERY word, number, symbol, and character exactly as it appears.',
+        '2. Preserve the ORIGINAL language — do NOT translate anything.',
+        '3. Maintain the original structure: headings, paragraphs, lists, tables.',
+        '4. Use Markdown formatting to represent the structure.',
+        '5. For tables, reconstruct them using Markdown table syntax.',
+        '6. Preserve ALL special characters, accents, Cyrillic, Arabic, CJK, etc.',
+        '7. Do NOT add any explanations, comments, or notes of your own.',
+        '8. Do NOT summarize — extract the COMPLETE text.',
+        '9. If a page has headers/footers, include them.',
+        '10. If no legible text is found, respond exactly: "[Sin texto detectado]".',
+        '',
+        'Return ONLY the extracted text, nothing else.',
+    ].join('\n');
+}
+
+/* ── Funciones de solo extracción (sin Gemini para DOCX) ──── */
+
+/**
+ * Extrae texto de un DOCX sin traducir (no requiere Gemini).
+ */
+async function extractOnlyWord(file: File): Promise<TranslationResult> {
+    const extractedText = await extractTextFromDocx(file);
+
+    if (!extractedText.trim()) {
+        return { translatedText: '[Documento vacío — no se encontró texto]' };
+    }
+
+    return { translatedText: extractedText };
+}
+
+/**
+ * Extrae texto de una imagen usando OCR de Gemini (sin traducir).
+ */
+async function extractOnlyImage(file: File): Promise<TranslationResult> {
+    validateFileSize(file);
+    const model = getModel();
+    const base64 = await fileToBase64(file);
+
+    const result = await model.generateContent([
+        buildOcrExtractOnlyPrompt(),
+        {
+            inlineData: {
+                data: base64,
+                mimeType: file.type,
+            },
+        },
+    ]);
+
+    return { translatedText: result.response.text().trim() };
+}
+
+/**
+ * Extrae texto de un PDF usando Gemini (sin traducir).
+ */
+async function extractOnlyPdf(file: File): Promise<TranslationResult> {
+    validateFileSize(file);
+    const model = getModel();
+    const base64 = await fileToBase64(file);
+
+    const result = await model.generateContent([
+        buildOcrExtractOnlyPrompt(),
+        {
+            inlineData: {
+                data: base64,
+                mimeType: 'application/pdf',
+            },
+        },
+    ]);
+
+    return { translatedText: result.response.text().trim() };
 }
 
 /* ── Funciones de traducción por tipo ─────────────────────── */
@@ -179,11 +273,12 @@ async function translateWord(
 /* ── Función principal exportada ──────────────────────────── */
 
 /**
- * Traduce un archivo (imagen, PDF o Word) al idioma destino usando Gemini.
+ * Traduce o extrae texto de un archivo (imagen, PDF o Word).
+ * Si targetLang es 'original', solo extrae texto sin traducir.
  *
  * @param file      - Archivo subido por el usuario.
- * @param targetLang - Código ISO del idioma destino.
- * @returns Resultado con el texto traducido.
+ * @param targetLang - Código ISO del idioma destino, o 'original' para solo extraer.
+ * @returns Resultado con el texto traducido o extraído.
  */
 export async function translateFile(
     file: File,
@@ -191,6 +286,19 @@ export async function translateFile(
 ): Promise<TranslationResult> {
     const category = categorizeFile(file.type);
 
+    // Modo "solo extraer texto" — sin traducción
+    if (targetLang === 'original') {
+        switch (category) {
+            case 'word':
+                return extractOnlyWord(file);
+            case 'image':
+                return extractOnlyImage(file);
+            case 'pdf':
+                return extractOnlyPdf(file);
+        }
+    }
+
+    // Modo traducción normal
     switch (category) {
         case 'image':
             return translateImage(file, targetLang);
